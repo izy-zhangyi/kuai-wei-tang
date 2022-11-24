@@ -4,6 +4,7 @@ import cn.itcast.reggie.domain.Category;
 import cn.itcast.reggie.domain.Dish;
 import cn.itcast.reggie.domain.DishFlavor;
 import cn.itcast.reggie.dto.DishDto;
+import cn.itcast.reggie.exception.BusinessException;
 import cn.itcast.reggie.mapper.DishFlavorMapper;
 import cn.itcast.reggie.mapper.DishMapper;
 import cn.itcast.reggie.service.CategoryService;
@@ -313,7 +314,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         Set<Long> dishId = list.stream().map(Dish::getId).collect(Collectors.toSet());
 
         //拿到所有对应的菜品信息之后，就可以得到所对应的口味信息
-        List<DishFlavor> dishFlavorList = this.dishFlavorService.
+        List<DishFlavor> dishFlavorList = dishFlavorService.
                 list(new LambdaQueryWrapper<DishFlavor>()
                         .in(DishFlavor::getDishId, dishId));
 
@@ -337,36 +338,25 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         return dishDtoList;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void deleteById(List<Long> ids) {
+        //菜品删除
+        /**
+         * 在售中的菜品不可被删除
+         * 通过 id查到即将被删除的数据，通过状态判断是否可以被删除
+         */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // 构造查询构造器
+        LambdaQueryWrapper<Dish> queryWrapper =new LambdaQueryWrapper<>();
+        //通过id查到数据,查到数据之后，看一下当前菜品状态是否为在售状态：1，
+        queryWrapper.in(Dish::getId,ids).eq(Dish::getStatus,1);
+        //获去一共查到了多少的所有数据（获取有多少菜品为在售状态）
+        int count = (int) this.count(queryWrapper);
+        if (count >0) {
+            //count >0 ，菜品在售中不可删除，直接抛出异常
+            throw new BusinessException("菜品正在售卖中，不可被删除");
+        }
+        this.removeByIds(ids);
+    }
 }

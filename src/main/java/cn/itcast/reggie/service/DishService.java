@@ -19,5 +19,7 @@ public interface DishService extends IService<Dish> {
     void modifyById(DishDto dishDto);
 
     List<DishDto> getDishDtoList(Long categoryId, String name,Integer status);
+
+    void deleteById(List<Long> ids);
 }
 

@@ -5,6 +5,7 @@ import cn.itcast.reggie.domain.Dish;
 import cn.itcast.reggie.dto.DishDto;
 import cn.itcast.reggie.service.DishService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
@@ -86,9 +87,41 @@ public class DishController {
     public R<List<DishDto>> getDishList(Long categoryId,String name,Integer status){
 
         //查询完之后，调用业务层接口中的list方法，回显数据
-        List<DishDto> list = this.dishService.getDishDtoList(categoryId,name,status);
+        List<DishDto> list = dishService.getDishDtoList(categoryId,name,status);
         return R.success(list);
     }
 
+    /**
+     * 根据菜品id，批量修改菜品状态
+     * @param status
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    public R<String> updateDishStatus( @PathVariable Integer status, @RequestParam List<Long> ids){
+        log.info("status:{},ids:{}",status,ids);
+        // 构造条件修改构造器
+        LambdaUpdateWrapper<Dish> updateWrapper = new LambdaUpdateWrapper<>();
+        //根据id信息修改菜品状态
+        /**
+         * 对应SQL语句：
+         *          update dish set status = {status} where id in(ids);
+         */
+        updateWrapper.set(Dish::getStatus,status).in(Dish::getId,ids);
+        dishService.update(updateWrapper);
+        return R.success("修改成功");
+    }
 
+    /**
+     * 传的id不可为空
+     * 菜品是直接删除的
+     * @param ids
+     * @return
+     */
+    @DeleteMapping
+    public R<String> deleteDish(@RequestParam List<Long> ids){
+        log.info("ids:{}",ids);
+        this.dishService.deleteById(ids);
+        return R.success("菜品删除成功");
+    }
 }
