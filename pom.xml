@@ -8,11 +8,11 @@
         <version>2.7.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>cn.itcast.reggie</groupId>
-    <artifactId>reggie_take_out</artifactId>
+    <groupId>com.kwt</groupId>
+    <artifactId>kuai-wei-tang</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>reggie_take_out</name>
-    <description>reggie_take_out</description>
+    <name>kuai-wei-tang</name>
+    <description>kuai-wei-tang</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>

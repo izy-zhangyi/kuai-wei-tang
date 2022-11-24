@@ -1,6 +1,6 @@
 spring:
   application:
-    name: reggie_take_out
+    name: kuai-wei-tang
   shardingsphere:
     datasource:
       names:
