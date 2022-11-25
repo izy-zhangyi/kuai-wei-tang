@@ -43,6 +43,7 @@
           handleAvatarSuccess (response, file, fileList) {
               this.imageUrl = `/common/download?name=${response.data}`
           },
+          //上传之前
           beforeUpload (file) {
             if(file){
               const suffix = file.name.split('.')[1]

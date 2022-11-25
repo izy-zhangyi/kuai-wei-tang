@@ -1,5 +1,7 @@
 package cn.itcast.reggie.domain;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -39,5 +41,6 @@ public class ShoppingCart implements Serializable {
     //图片
     private String image;
 
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 }

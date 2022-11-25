@@ -265,7 +265,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         // 原始数据： 河南烩面（辣度1，温度2）
         // 修改的数据： 河南烩面（辣度3，忌口4）
         //获取dishDto中的菜品口味信息
-        List<DishFlavor> flavorList = dishDto.getFlavors();
+        //List<DishFlavor> flavorList = dishDto.getFlavors();
 
         //遇到这种批量数据，或是多数据，要做统一修改的时候
         /**
@@ -290,6 +290,10 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         dishDto.getFlavors().forEach(dishFlavor -> {
             dishFlavor.setDishId(dishDto.getId());
         });
+        //删除之后，要同时新增
+        //新增菜品口味
+        //用service的原因就是因为mapper里没有封装批量新增的方法
+        this.dishFlavorService.saveBatch(dishDto.getFlavors());
     }
 
     @Override
@@ -314,9 +318,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         Set<Long> dishId = list.stream().map(Dish::getId).collect(Collectors.toSet());
 
         //拿到所有对应的菜品信息之后，就可以得到所对应的口味信息
-        List<DishFlavor> dishFlavorList = dishFlavorService.
-                list(new LambdaQueryWrapper<DishFlavor>()
-                        .in(DishFlavor::getDishId, dishId));
+        List<DishFlavor> dishFlavorList = dishFlavorService.list(new LambdaQueryWrapper<DishFlavor>().in(DishFlavor::getDishId, dishId));
 
         //将拿到的所有数据，转为map
         Map<Long, List<DishFlavor>> flavorMap = dishFlavorList.stream().collect(Collectors.groupingBy(DishFlavor::getDishId));

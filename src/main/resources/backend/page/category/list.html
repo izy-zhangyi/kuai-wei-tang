@@ -191,6 +191,8 @@
             this.init();
           },
            // 添加
+          //新增菜品 st=class
+          //新增套餐 st=meal
           addClass(st) {
             if (st == 'class') {
               this.classData.title = '新增菜品分类'
@@ -238,10 +240,16 @@
           //数据提交
           submitForm(st) {
               const classData = this.classData
+            //if(classData.name)
+            //就是判断这个参数是否有值
+            //name sort都是必填的
               const valid = (classData.name === 0 ||classData.name)  && (classData.sort === 0 || classData.sort)
               if (this.action === 'add') {
                 if (valid) {
                   const reg = /^\d+$/
+                  //正则表达式
+                  //reg 翻译过来就是纯数字
+                  //排序必须是数字
                   if (reg.test(classData.sort)) {
                     addCategory({'name': classData.name,'type':this.type, sort: classData.sort}).then(res => {
                       console.log(res)

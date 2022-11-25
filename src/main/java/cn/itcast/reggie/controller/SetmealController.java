@@ -91,4 +91,22 @@ public class SetmealController {
         List<Setmeal> list = setmealService.list(queryWrapper);
         return R.success(list);
     }
+    @GetMapping("/{id}")
+    public R<SetmealDto> getByIdData(@PathVariable Long id){
+/*        数据没有回显，此方法行不通
+        LambdaQueryWrapper<Setmeal> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.eq(id!=null,Setmeal::getId,id);
+        Setmeal setmeal = setmealService.getOne(queryWrapper);
+        return R.success(setmeal);
+
+ */
+        SetmealDto setmealDto = setmealService.getDataById(id);
+        return R.success(setmealDto);
+    }
+
+    @PutMapping
+    public R<String> updateSetmealData(@RequestBody SetmealDto setmealDto){
+        this.setmealService.updateSetmealData(setmealDto);
+        return R.success("修改成功");
+    }
 }

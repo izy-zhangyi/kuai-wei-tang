@@ -544,7 +544,8 @@
                   dishFlavor.push(item.dishFlavor)
                 }else{
                       flag = false
-                      Notify({ type: 'warning', message: '请选择'+ item.name });
+                      //Notify({ type: 'warning', message: '请选择'+ item.name });
+                      this.$notify({ type:'warning', message:'请选择'+ item.name});
                 }
               })
               if(flag){
