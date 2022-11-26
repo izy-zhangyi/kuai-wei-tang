@@ -1,5 +1,6 @@
 package cn.itcast.reggie.service.impl;
 
+import cn.itcast.reggie.common.R;
 import cn.itcast.reggie.common.ReggieContext;
 import cn.itcast.reggie.domain.*;
 import cn.itcast.reggie.dto.OrdersDto;
@@ -26,6 +27,8 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -103,6 +106,12 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         this.shoppingCartMapper.deleteBatchIds(shoppingCartList.stream().map(ShoppingCart::getId).collect(Collectors.toSet()));
     }
 
+    /**
+     * 订单详细信息
+     * @param page
+     * @param pageSize
+     * @return
+     */
     @Override
     public Page<OrdersDto> userPage(Integer page, Integer pageSize) {
         /**
@@ -111,20 +120,98 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         //构造分页构造器
         Page<Orders> ordersPage = new Page<>(page,pageSize);
 
-        //构造条件查询构造器
-        LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.orderByDesc(Orders::getOrderTime);
-        this.page(ordersPage,queryWrapper);
-
         /**
          * 构造子类分页构造器（OrderDto）
          * 接着将父类中的分页数据先行拷贝到子类的分页中
          */
-        Page<OrderDetail> orderDetailPage = new Page<>();
-        BeanUtils.copyProperties(ordersPage,orderDetailPage,"records");
+        Page<OrdersDto> ordersDtoPage = new Page<>(page,pageSize);
+        //先行创建 ordersDto 的集合对象，用来保存拷贝的数据
+        List<OrdersDto> ordersDtoList = new ArrayList<>();
 
-        List<Orders> ordersList = ordersPage.getRecords();
+        //构造条件查询构造器,通过用户登录的id 获取数据
+        LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Orders::getUserId,ReggieContext.get()).orderByDesc(Orders::getOrderTime);
+        //将--》通过用户id获取到的数据--》 联合Orders 的分页数据-->调用IService中的分页方法--》 去构造一个新的Orders的分页构造器
+        Page<Orders> ordersPage1 = this.page(ordersPage, queryWrapper);
+        /**
+         * 查询完成之后，调用分页方法去分页，最后在封装成对象
+         * 通过 这个新的分页构造器对象，调用Orders 中的 getRecords方法
+         * 这就可以拿到-->查询出来的-->实体类（Orders）的-->新的list分页的数据了
+         */
+        List<Orders> ordersList = ordersPage1.getRecords();
+        /**
+         * 获取 orders 中的id
+         * 为了避免拿到重复id数据，要转map，最后要用map集合接收
+         */
+        Set<Long> orderIds = ordersList.stream().map(Orders::getId).collect(Collectors.toSet());
+        //拿到Orders的id，就可以拿到,orders在 orderDetails中对应的数据
+        List<OrderDetail> orderDetailList = orderDetailService.list(new LambdaQueryWrapper<OrderDetail>().in(OrderDetail::getId, orderIds));
+       //将拿到的 order在 orderDetails中对应的数据 转map
+        Map<Long, List<OrderDetail>> map = orderDetailList.stream().collect(Collectors.groupingBy(OrderDetail::getId));
 
-        return null;
+        //遍历+处理数据
+        ordersList.forEach(orders -> {
+
+            /**
+             * ordersDto中有orders所没有的一些字段
+             * ordersDto继承了orders，所以要将数据拷贝到ordersDto
+             * 将orders中的数据拷贝到ordersDto中
+             * 拷贝---》将拷贝的数据封装---》new ordersDto
+             */
+            OrdersDto ordersDto = new OrdersDto();
+            BeanUtils.copyProperties(orders,ordersDto);
+
+            //要处理的数据---》在转换的map集合中
+            List<OrderDetail> orDefault = map.getOrDefault(ordersDto.getId(), new ArrayList<>());
+            //将处理好的数据 放入 ordersDto中
+            ordersDto.setOrderDetails(orDefault);
+            //最后，将ordersDto中所有拷贝的数据保存到ordersDto的集合中
+            ordersDtoList.add(ordersDto);
+
+        });
+        //之后，再将所有数据都放入分页中（所有数据都保存到ordersDto的list中了）
+        ordersDtoPage.setRecords(ordersDtoList);
+        //将分页数据回显到页面--》就可以看到订单信息了
+        return ordersDtoPage;
     }
+    /**
+     *  B:
+     * @param orders
+     * @return
+     */
+//    @Override
+//    @Transactional(rollbackFor = Exception.class)
+//    public Orders again(Orders orders) {
+//        //通过orders的id，可以获取到一天数据，--封装成对象
+//        Orders orders1 = this.getById(orders.getId());
+//        //判断 里面有没有数据
+//        if (orders1 == null) {
+//            throw new BusinessException("没有数据");
+//        }
+//        /**
+//         * 没有数据
+//         * 就可以执行添加了
+//         * 添加之后保存
+//         */
+//        long id = IdWorker.getId();
+//        long ordersDetailId = IdWorker.getId(); //订单id
+//        orders1.setId(id);
+//        orders1.setNumber(String.valueOf(id));
+//        orders1.setStatus(2);
+//        orders1.setOrderTime(LocalDateTime.now());
+//        this.save(orders1);
+//
+//        //构造OrdersDetail的条件查询构造器, 通过 Orders中的id去获取OrdersDetail的中信息（orders ，orders_detail)
+//        LambdaQueryWrapper<OrderDetail> queryWrapper = new LambdaQueryWrapper<>();
+//        queryWrapper.eq(OrderDetail::getOrderId,orders.getId());
+//        OrderDetail one = orderDetailService.getOne(queryWrapper);
+//        if (one == null) {
+//            throw new BusinessException("查无此数据");
+//        }
+//        one.setId(ordersDetailId);
+//        one.setOrderId(one.getId());
+//        orderDetailService.save(one);
+//        return orders;
+//    }
+
 }

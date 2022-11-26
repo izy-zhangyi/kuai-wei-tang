@@ -5,12 +5,14 @@ import cn.itcast.reggie.domain.Orders;
 import cn.itcast.reggie.dto.OrdersDto;
 import cn.itcast.reggie.service.OrdersService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @RestController
@@ -64,16 +66,56 @@ public class OrdersController {
         this.ordersService.updateById(orders);
         return R.success("修改成功");
     }
+
+    /**
+     * 提交订单
+     * @param orders
+     * @return
+     */
     @PostMapping("/submit")
     public R<String> submitOrder(@RequestBody Orders orders){
         ordersService.submit(orders);
         return R.success("下单成功");
     }
 
+    /**
+     * 订单信息
+     * @param page
+     * @param pageSize
+     * @return
+     */
     @GetMapping("/userPage")
     public R<Page<OrdersDto>> userPage(Integer page , Integer pageSize){
-        Page<OrdersDto> ordersPage =this.ordersService.userPage(page,pageSize);
+        Page<OrdersDto> ordersPage =ordersService.userPage(page,pageSize);
         return R.success(ordersPage);
     }
+
+    /**
+     *    A:
+     * 再来一单
+     * @param orders
+     * @return
+     */
+    @PostMapping("/again")
+    public R<String> again(@RequestBody Orders orders){
+        Orders temp = ordersService.getById(orders.getId());
+        temp.setId(null);
+        temp.setStatus(2);
+        long orderId = IdWorker.getId(); // 订单号
+        temp.setNumber(String.valueOf(orderId));
+        temp.setOrderTime(LocalDateTime.now());
+        temp.setCheckoutTime(LocalDateTime.now());
+        ordersService.save(temp);
+        return R.success("下单成功");
+    }
+/*
+   //  B:
+    @PostMapping("/again")
+    public R<Orders> againShopping(@RequestBody Orders orders){
+        log.info("再次购买：{}",orders);
+        Orders orders1 = ordersService.again(orders);
+        return R.success(orders1);
+    }
+*/
 
 }
