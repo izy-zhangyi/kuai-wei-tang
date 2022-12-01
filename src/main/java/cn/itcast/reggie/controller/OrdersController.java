@@ -2,35 +2,24 @@ package cn.itcast.reggie.controller;
 
 import cn.itcast.reggie.common.R;
 import cn.itcast.reggie.domain.Orders;
-import cn.itcast.reggie.domain.User;
 import cn.itcast.reggie.dto.OrdersDto;
-import cn.itcast.reggie.service.OrdersDtoService;
 import cn.itcast.reggie.service.OrdersService;
-import cn.itcast.reggie.service.UserService;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
 @RequestMapping("/order")
 public class OrdersController {
     @Autowired
-    private OrdersService ordersService;
-    @Autowired
-    private OrdersDtoService ordersDtoService;
-    @Autowired
-    private UserService userService;
+    private OrdersService ordersService;;
     /**
      * 订单--分页查询
      *
@@ -54,7 +43,7 @@ public class OrdersController {
 //        //最后，调用接口方法执行分页查询
 //        this.ordersService.page(ordersPage,queryWrapper);
 //        return R.success(ordersPage);
-        Page<OrdersDto> ordersDtoPage = ordersDtoService.pageOrder(page,pageSize,number,beginTime,endTime);
+        Page<OrdersDto> ordersDtoPage = ordersService.pageOrder(page,pageSize,number,beginTime,endTime);
         return R.success(ordersDtoPage);
     }
 

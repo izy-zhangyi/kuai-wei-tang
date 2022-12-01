@@ -11,6 +11,7 @@ import cn.itcast.reggie.mapper.ShoppingCartMapper;
 import cn.itcast.reggie.mapper.UserMapper;
 import cn.itcast.reggie.service.OrderDetailService;
 import cn.itcast.reggie.service.OrdersService;
+import cn.itcast.reggie.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -25,11 +26,9 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,12 +38,15 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     @Autowired
     private OrderDetailService orderDetailService;
     @Autowired
+    private OrdersService ordersService;
+    @Autowired
     private ShoppingCartMapper shoppingCartMapper;
     @Autowired
     private AddressBookMapper addressBookMapper;
     @Autowired
     private UserMapper userMapper;
-
+    @Autowired
+    private UserService userService;
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void submit(Orders orders) {
@@ -172,6 +174,75 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         //之后，再将所有数据都放入分页中（所有数据都保存到ordersDto的list中了）
         ordersDtoPage.setRecords(ordersDtoList);
         //将分页数据回显到页面--》就可以看到订单信息了
+        return ordersDtoPage;
+    }
+
+    @Override
+    public Page<OrdersDto> pageOrder(Integer page, Integer pageSize, String number, Date beginTime, Date endTime) {
+        log.info("订单分页查询：page：{}，pageSize：{}，number：{}，beginTime：{}，endTime：{}",page,pageSize,beginTime,endTime);
+        //构建Orders分页构造器 以及OrdersDto的分页构造器对象
+        Page<Orders> ordersPage = new Page<>(page,pageSize);
+        Page<OrdersDto> ordersDtoPage = new Page<>(page,pageSize);//核心
+        //先行将orders中的分页数据，拷贝到 ordersDto中去-->records:代表记录拷贝的分页数据
+        BeanUtils.copyProperties(ordersPage,ordersDtoPage,"records");
+        //构建条件查询构造器
+        LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(number!=null,Orders::getNumber,number)
+                .between(beginTime!=null&endTime!=null,Orders::getOrderTime,beginTime,endTime);
+
+        /**
+         * 将--》通过构造器查询获取到的数据--》 联合Orders 的分页数据-->调用IService中的分页方法--》 去构造一个新的Orders的分页构造器
+         *  查询完成之后，调用分页方法去分页，最后在封装成对象
+         */
+        Page<Orders> ordersPage1 = ordersService.page(ordersPage, queryWrapper);
+        /**
+         * 通过 这个新的分页构造器对象，调用Orders 中的 getRecords方法
+         * 这就可以拿到-->查询出来的-->实体类（Orders）的-->新的list分页的数据了
+         */
+
+        List<Orders> records = ordersPage1.getRecords();
+        List<OrdersDto> ordersDtoList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(records)) {
+            return ordersDtoPage;
+        }
+        /**
+         * 之后再新的list集合中去获取 orders 中的 用户登录的id信息
+         * 由于id有多个，为了避免拿到重复数据，要 toSet 一下，最后用set集合保存
+         */
+        Set<Long> orderIds = records.stream().map(Orders::getUserId).collect(Collectors.toSet());
+        //拿到orders中的用户的登录的id之后，就可以得到数据-->orders在 orderDto中对应的数据
+        //通过用户登录的id拿到所对应的用户订单信息
+        List<User> userList = userService.listByIds(orderIds);
+
+        //将拿到的orders在 orderDto中对应的数据 根据ordersDto的id分组处理后 转为 map
+        //就是将通过用户登录的id拿到所对应的订单数据根据id分组处理后 转为 map
+        Map<Long, User> map = userList.stream().collect(Collectors.toMap(User::getId, Function.identity()));
+
+        /**
+         * 之后遍历通过 orders的新的分页数据对象调用 getRecodes拿到的数据---》list集合 对象
+         * 接着处理数据
+         */
+        records.forEach(orders -> {
+            /**
+             * 遍历之后，要将得到的orders数据 拷贝到 ordersDto中
+             * 拷贝完成之后，对数据进行封装
+             */
+            OrdersDto ordersDto = new OrdersDto();
+            BeanUtils.copyProperties(orders,ordersDto);
+            ordersDtoList.add(ordersDto);
+            /**
+             * 封装完拷贝数据之后，紧接着就要处理数据了
+             * 要处理的数据在 map 集合中
+             * 通过 ordersDto的id，可获取处理的数据
+             */
+            User orDefault = map.getOrDefault(orders.getUserId(), new User());
+
+            //得到处理好的数据之后，将数据放入 ordersDtode的集合中去
+            ordersDto.setUserName(orDefault.getName());
+
+        });
+        //最后，调用接口方法执行分页查询
+        ordersDtoPage.setRecords(ordersDtoList);
         return ordersDtoPage;
     }
     /**

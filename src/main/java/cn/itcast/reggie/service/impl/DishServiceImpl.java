@@ -5,7 +5,6 @@ import cn.itcast.reggie.domain.Dish;
 import cn.itcast.reggie.domain.DishFlavor;
 import cn.itcast.reggie.dto.DishDto;
 import cn.itcast.reggie.exception.BusinessException;
-import cn.itcast.reggie.mapper.DishFlavorMapper;
 import cn.itcast.reggie.mapper.DishMapper;
 import cn.itcast.reggie.service.CategoryService;
 import cn.itcast.reggie.service.DishFlavorService;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

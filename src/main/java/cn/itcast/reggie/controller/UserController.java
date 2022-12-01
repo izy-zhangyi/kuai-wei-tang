@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController //此注释，包含了 @Component 与 @ResponseBody 这两个注解的方法
@@ -102,6 +101,7 @@ public class UserController {
         //用户登录成功，则直接在Redis的缓存中删除已经登录过的验证码
         redisTemplate.delete(phoneKey);
         return R.success(user);
+
     }
 
     @PostMapping("/loginout")
