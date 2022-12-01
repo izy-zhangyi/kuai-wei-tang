@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,14 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements DishService {
+
     @Autowired
-    private DishFlavorMapper dishFlavorMapper;
+    private RedisTemplate redisTemplate;
     @Autowired
     private CategoryService categoryService;
 
@@ -64,6 +67,17 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         // 2、新增菜品口味
         //用service的原因就是mapper里面没有封装 批量新增的方法
         this.dishFlavorService.saveBatch(dishDto.getFlavors());//批量添加菜品口味到Dish_flavor表中
+        //删除缓存，删除缓存建议方下面，
+        /**
+         * 好处：
+         * 要是上面代码报错---》数据库报错；就和缓存没关系
+         * 要是上面代码没有报错，但是在删除缓存的过程之中出错---》整个事务提交回滚
+         */
+        /**
+         * 由于只有分类id，没有 name，status，就只能批量删除
+         */
+        Set<Dish> keys = redisTemplate.keys("dish_");
+        redisTemplate.delete(keys);
     }
 
     /**
@@ -295,10 +309,29 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         //新增菜品口味
         //用service的原因就是因为mapper里没有封装批量新增的方法
         this.dishFlavorService.saveBatch(dishDto.getFlavors());
+        /**
+         * 将缓存全部删除原因：
+         * 查询时多了一个name字段
+         * 也不知道前端传回的name是什么
+         * 所有只能批量全删
+         */
+        Set<Dish> keys = redisTemplate.keys("dish_" + "*");
+        redisTemplate.delete(keys);
     }
 
     @Override
     public List<DishDto> getDishDtoList(Long categoryId, String name,Integer status) {
+        //先 从Redis中拿缓存数据
+        String keys = "dish_" + categoryId + "_" + name + "_" + status;
+        List<DishDto> redisResult = (List<DishDto>) redisTemplate.opsForValue().get(keys);
+        //，判断里面有还是没有数据
+        if (redisResult != null) {
+            //拿到Redis中的缓存数据了，直接返回用就行
+            return redisResult;
+        }
+        //如果不存在，需要查询数据库，将查询到的菜品数据缓存到Redis中
+        // 查询构造器，查询时，id,name,状态，皆不可为空
+        //先行查出菜品数据
         // 查询构造器，查询时，id,name,状态，皆不可为空
         //先行查出菜品数据
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
@@ -311,7 +344,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         //因为DishDto 中有对应的菜品的口味信息，所以，Dish 要转成DishDto
         //创建一个DishDto的list集合，用来存DishDto数据
         List<DishDto> dishDtoList = new ArrayList<>();//核心
+        //如果通过菜品名称 查到的 dish 的list集合数据为空，则直接返回 dishDto的list集合对象
         if (CollectionUtils.isEmpty(list)) {
+            redisTemplate.opsForValue().set(keys, dishDtoList, 5, TimeUnit.MINUTES);
             return dishDtoList;
         }
         /**
@@ -341,6 +376,8 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             //处理菜品口味信息    new ArraysList<>():相当于默认值
             dishDto.setFlavors(flavorMap.getOrDefault(dish.getId(),new ArrayList<>()));
         });
+        //已经从数据库中查到想要的数据了，接着就可以放入Redis的缓存中了
+        redisTemplate.opsForValue().set(keys, dishDtoList, 30, TimeUnit.MINUTES);
         return dishDtoList;
     }
 

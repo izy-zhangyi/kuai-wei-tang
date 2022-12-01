@@ -34,4 +34,5 @@ public class ReggieConstants {
      * 为用户设置默认密码
      */
     public static final String PASSWORD_DEFAULT = "123456";
+    public static final Object USER_MSG_CODE = "userCode";
 }

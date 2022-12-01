@@ -9,6 +9,15 @@ spring:
       url: jdbc:mysql:///reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: 1234
+      #Redis相关配置
+  redis:
+    host: 192.168.182.132
+    port: 6379
+    password: 123456
+    database: 0 #操作的是0号数据库
+  cache:
+    redis:
+      time-to-live: 18000 #设置数据缓存过期时间---》数据最大存在时间（数据寿命）
 
 mybatis-plus:
   configuration:

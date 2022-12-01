@@ -21,8 +21,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -73,7 +73,6 @@
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-jdbc:2.7.5" level="project" />
     <orderEntry type="library" name="Maven: com.zaxxer:HikariCP:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-jdbc:5.3.23" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework:spring-tx:5.3.23" level="project" />
     <orderEntry type="library" name="Maven: org.mybatis.spring.boot:mybatis-spring-boot-autoconfigure:2.2.2" level="project" />
     <orderEntry type="library" name="Maven: org.mybatis:mybatis:3.5.9" level="project" />
     <orderEntry type="library" name="Maven: org.mybatis:mybatis-spring:2.0.7" level="project" />
@@ -127,5 +126,23 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-jcl:5.3.23" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-test:5.3.23" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.xmlunit:xmlunit-core:2.9.0" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-data-redis:2.7.5" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-redis:2.7.5" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-keyvalue:2.7.5" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-commons:2.7.5" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-tx:5.3.23" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-oxm:5.3.23" level="project" />
+    <orderEntry type="library" name="Maven: io.lettuce:lettuce-core:6.1.10.RELEASE" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-common:4.1.84.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-handler:4.1.84.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-resolver:4.1.84.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-buffer:4.1.84.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-transport-native-unix-common:4.1.84.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-codec:4.1.84.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-transport:4.1.84.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.projectreactor:reactor-core:3.4.24" level="project" />
+    <orderEntry type="library" name="Maven: org.reactivestreams:reactive-streams:1.0.4" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-cache:2.7.5" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-context-support:5.3.23" level="project" />
   </component>
 </module>
