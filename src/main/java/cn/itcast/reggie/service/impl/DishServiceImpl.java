@@ -11,6 +11,7 @@ import cn.itcast.reggie.service.CategoryService;
 import cn.itcast.reggie.service.DishFlavorService;
 import cn.itcast.reggie.service.DishService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -310,6 +311,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         //因为DishDto 中有对应的菜品的口味信息，所以，Dish 要转成DishDto
         //创建一个DishDto的list集合，用来存DishDto数据
         List<DishDto> dishDtoList = new ArrayList<>();//核心
+        if (CollectionUtils.isEmpty(list)) {
+            return dishDtoList;
+        }
         /**
          * 将菜品口味信息塞进DishDto中
          * 通过菜品的id，查出所有的菜品所对应的口味信息

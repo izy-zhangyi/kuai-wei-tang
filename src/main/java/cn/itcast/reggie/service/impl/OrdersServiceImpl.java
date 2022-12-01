@@ -132,22 +132,22 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Orders::getUserId,ReggieContext.get()).orderByDesc(Orders::getOrderTime);
         //将--》通过用户id获取到的数据--》 联合Orders 的分页数据-->调用IService中的分页方法--》 去构造一个新的Orders的分页构造器
-        Page<Orders> ordersPage1 = this.page(ordersPage, queryWrapper);
+        this.page(ordersPage, queryWrapper);
         /**
          * 查询完成之后，调用分页方法去分页，最后在封装成对象
          * 通过 这个新的分页构造器对象，调用Orders 中的 getRecords方法
          * 这就可以拿到-->查询出来的-->实体类（Orders）的-->新的list分页的数据了
          */
-        List<Orders> ordersList = ordersPage1.getRecords();
+        List<Orders> ordersList = ordersPage.getRecords();
         /**
          * 获取 orders 中的id
          * 为了避免拿到重复id数据，要转map，最后要用map集合接收
          */
         Set<Long> orderIds = ordersList.stream().map(Orders::getId).collect(Collectors.toSet());
         //拿到Orders的id，就可以拿到,orders在 orderDetails中对应的数据
-        List<OrderDetail> orderDetailList = orderDetailService.list(new LambdaQueryWrapper<OrderDetail>().in(OrderDetail::getId, orderIds));
+        List<OrderDetail> orderDetailList = orderDetailService.list(new LambdaQueryWrapper<OrderDetail>().in(OrderDetail::getOrderId, orderIds));
        //将拿到的 order在 orderDetails中对应的数据 转map
-        Map<Long, List<OrderDetail>> map = orderDetailList.stream().collect(Collectors.groupingBy(OrderDetail::getId));
+        Map<Long, List<OrderDetail>> map = orderDetailList.stream().collect(Collectors.groupingBy(OrderDetail::getOrderId));
 
         //遍历+处理数据
         ordersList.forEach(orders -> {
