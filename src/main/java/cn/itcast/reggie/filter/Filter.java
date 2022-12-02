@@ -15,7 +15,7 @@ import java.io.IOException;
 
 @WebFilter(filterName = "filter", urlPatterns = "/*")
 @Slf4j
-public class filter implements Filter {
+public class Filter implements javax.servlet.Filter {
     /**
      * 路径匹配，匹配所有要过滤放行的路径
      */

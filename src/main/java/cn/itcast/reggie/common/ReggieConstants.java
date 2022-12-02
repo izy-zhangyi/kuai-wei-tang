@@ -26,7 +26,11 @@ public class ReggieConstants {
             "/backend/**", "/front/**",
             "/employee/login", "/employee/logout",
             "/common/upload","/common/download",
-            "/user/sendMsg","/user/login"
+            "/user/sendMsg","/user/login",
+            "/doc.html",
+            "/webjars/**",
+            "/swagger-resources",
+            "/v2/api-docs"
 
     };
 

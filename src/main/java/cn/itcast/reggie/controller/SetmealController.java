@@ -7,8 +7,14 @@ import cn.itcast.reggie.service.SetmealService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +25,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/setmeal")
+@Api(tags = "套餐相关接口")
 public class SetmealController {
 
     @Autowired
@@ -31,6 +38,8 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
+    @ApiOperation(value = "新增套餐接口")
     public R<String> addSetMeal(@RequestBody SetmealDto setmealDto) {
         log.info("setMeal:{}", setmealDto);
         setmealService.addSetMeal(setmealDto);
@@ -47,6 +56,10 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/page")
+    @ApiOperation(value = "套餐分页查询接口")
+    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页码", required = true),
+            @ApiImplicitParam(name = "pageSzie", value = "每页记录个数", required = true),
+            @ApiImplicitParam(name = "name", value = "套餐名称", required = false),})
     public R<Page<SetmealDto>> pageSetmealDto(Integer page, Integer pageSize, String name) {
 
         //创建分类构造器对象,在用 套餐的业务层接口 调用 业务层中的 分页方法
@@ -74,6 +87,8 @@ public class SetmealController {
      * @return
      */
     @DeleteMapping
+    @CacheEvict(value = "setmealCache",allEntries = true)
+    @ApiOperation(value = "套餐删除接口")
     public R<String> delete(@RequestParam List<Long> ids) {
         log.info("ids:{}", ids);
         //执行业务层接口的删除方法
@@ -82,7 +97,9 @@ public class SetmealController {
     }
 
     @GetMapping("/list")
-    public R<List<Setmeal>> list( Setmeal setmeal) {
+    @Cacheable(value = "setmealCache",key = "#setmeal.categoryId + '_' + #setmeal.status")
+    @ApiOperation(value = "套餐条件查询接口")
+    public R<List<Setmeal>> list(Setmeal setmeal) {
         //查询构造器
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         //以套餐id和状态去匹配查询，条件--》套餐id与状态不可为空
@@ -91,8 +108,9 @@ public class SetmealController {
         List<Setmeal> list = setmealService.list(queryWrapper);
         return R.success(list);
     }
+
     @GetMapping("/{id}")
-    public R<SetmealDto> getByIdData(@PathVariable Long id){
+    public R<SetmealDto> getByIdData(@PathVariable Long id) {
 /*        数据没有回显，此方法行不通
         LambdaQueryWrapper<Setmeal> queryWrapper=new LambdaQueryWrapper<>();
         queryWrapper.eq(id!=null,Setmeal::getId,id);
@@ -105,7 +123,7 @@ public class SetmealController {
     }
 
     @PutMapping
-    public R<String> updateSetmealData(@RequestBody SetmealDto setmealDto){
+    public R<String> updateSetmealData(@RequestBody SetmealDto setmealDto) {
         this.setmealService.updateSetmealData(setmealDto);
         return R.success("修改成功");
     }
